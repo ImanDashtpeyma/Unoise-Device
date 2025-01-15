@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sound Data Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        img {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        td {
+            color: black;
+        }
+
+        td.red {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 style="text-align: center;">Sound Data Monitor</h1>
+
+    <!-- Chart Section -->
+    <div style="text-align: center;">
+        <img src="/chart" alt="Sound Level Chart" />
+    </div>
+
+    <!-- Table Section -->
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Sound</th>
+                <th>Decibels</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in data %}
+            <tr>
+                <td>{{ entry.timestamp }}</td>
+                <td>{{ entry.sound }}</td>
+                <td class="{% if entry.decibels > 80 %}red{% endif %}">{{ entry.decibels }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
