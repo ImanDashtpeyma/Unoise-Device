@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import io
 import matplotlib
 import pickle
-import requests  # To send data to the ML endpoint
-import csv  # For saving data to CSV
 
 # Use the Agg backend for non-interactive rendering
 matplotlib.use("Agg")
@@ -19,29 +17,6 @@ with open('model.pkl', 'rb') as f:
 # Data storage for sound
 sound_data = []
 
-# Machine learning endpoint
-ML_ENDPOINT = "https://unoise-dashboard.onrender.com/predict"
-
-# Save data to CSV
-def save_to_csv(entry):
-    file_name = "sound_ml_data.csv"
-    file_exists = False
-    try:
-        file_exists = open(file_name, "r")
-        file_exists.close()
-    except FileNotFoundError:
-        pass
-
-    with open(file_name, mode="a", newline="") as csv_file:
-        fieldnames = ["timestamp", "sound", "decibels", "prediction"]
-        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-
-        # Write header only if the file is new
-        if not file_exists:
-            writer.writeheader()
-
-        writer.writerow(entry)
-
 # Route to receive data
 @app.route("/receive_data", methods=["POST"])
 def receive_data():
@@ -53,23 +28,8 @@ def receive_data():
             "sound": data["sound"],
             "decibels": float(data["decibels"])
         }
-        
-        # Send data to ML endpoint
-        try:
-            ml_response = requests.post(ML_ENDPOINT, json={"decibels": entry["decibels"]})
-            if ml_response.status_code == 200:
-                prediction = ml_response.json()
-                entry["prediction"] = prediction.get("prediction", "Unknown")
-            else:
-                entry["prediction"] = "ML endpoint error"
-        except Exception as e:
-            entry["prediction"] = f"Error: {str(e)}"
-        
-        # Save to sound_data and CSV
         sound_data.append(entry)
-        save_to_csv(entry)
-
-        return jsonify({"message": "Data received and processed successfully", "entry": entry}), 200
+        return jsonify({"message": "Data received successfully"}), 200
     return jsonify({"error": "Invalid data"}), 400
 
 # Route to generate and serve the chart as an image
@@ -85,7 +45,7 @@ def chart():
     # Create the plot
     plt.figure(figsize=(10, 6))
     plt.plot(timestamps, decibels, marker="o", linestyle="-", label="Sound Level (dB)")
-    plt.axhline(85, color="red", linestyle="--", label="Threshold (85 dB)")
+    plt.axhline(50, color="red", linestyle="--", label="Threshold (85 dB)")
     plt.xticks(rotation=45, fontsize=8)
     plt.ylabel("Decibels (dB)")
     plt.xlabel("Timestamp")
@@ -102,16 +62,16 @@ def chart():
     # Serve the image
     return send_file(img, mimetype="image/png")
 
-# Route to predict noise levels using the local ML model
+# Route to predict noise levels using the ML model
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json()
     if "decibels" in data:
         # Prepare data for prediction
-        decibel_value = [float(data["decibels"])]
+        decibel_value = [[float(data["decibels"])]]
         prediction = model.predict(decibel_value)
         # Decode prediction result
-        label_map = {0: "Above Threshold", 1: "Below Threshold"}  # Adjust based on label encoding
+        label_map = {0: " Above Threshold", 1: "Below Threshold"}  # Adjust based on label encoding
         return jsonify({
             "decibels": data["decibels"],
             "prediction": label_map[prediction[0]]
