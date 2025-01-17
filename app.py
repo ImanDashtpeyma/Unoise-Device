@@ -20,27 +20,27 @@ with open('model.pkl', 'rb') as f:
 sound_data = []
 
 # Machine learning endpoint
-ML_ENDPOINT = "https://unoise-dashboard.onrender.com/predict"
+# ML_ENDPOINT = "https://unoise-dashboard.onrender.com/predict"
 
 # Save data to CSV
-# def save_to_csv(entry):
-#     file_name = "sound_ml_data.csv"
-#     file_exists = False
-#     try:
-#         file_exists = open(file_name, "r")
-#         file_exists.close()
-#     except FileNotFoundError:
-#         pass
+def save_to_csv(entry):
+    file_name = "static/sound_ml_data.csv"
+    file_exists = False
+    try:
+        file_exists = open(file_name, "r")
+        file_exists.close()
+    except FileNotFoundError:
+        pass
 
-#     with open(file_name, mode="a", newline="") as csv_file:
-#         fieldnames = ["timestamp", "sound", "decibels", "prediction"]
-#         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+    with open(file_name, mode="a", newline="") as csv_file:
+        fieldnames = ["timestamp", "sound", "decibels", "prediction"]
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
-#         # Write header only if the file is new
-#         if not file_exists:
-#             writer.writeheader()
+        # Write header only if the file is new
+        if not file_exists:
+            writer.writeheader()
 
-#         writer.writerow(entry)
+        writer.writerow(entry)
 
 # Route to receive data
 @app.route("/receive_data", methods=["POST"])
