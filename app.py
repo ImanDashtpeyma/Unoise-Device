@@ -22,25 +22,31 @@ sound_data = []
 # Machine learning endpoint
 # ML_ENDPOINT = "https://unoise-dashboard.onrender.com/predict"
 
-# Save data to CSV
 def save_to_csv(entry):
     file_name = "static/sound_ml_data.csv"
-    file_exists = False
-    try:
-        file_exists = open(file_name, "r")
-        file_exists.close()
-    except FileNotFoundError:
-        pass
 
-    with open(file_name, mode="a", newline="") as csv_file:
+    # Read existing data if the file exists
+    try:
+        with open(file_name, mode="r", newline="") as csv_file:
+            reader = csv.DictReader(csv_file)
+            existing_data = list(reader)
+    except FileNotFoundError:
+        existing_data = []
+
+    # Prepend the new entry
+    updated_data = [entry] + existing_data
+
+    # Write all data back to the file, with the new entry at the top
+    with open(file_name, mode="w", newline="") as csv_file:
         fieldnames = ["timestamp", "sound", "decibels", "prediction"]
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
-        # Write header only if the file is new
-        if not file_exists:
-            writer.writeheader()
+        # Write the header
+        writer.writeheader()
 
-        writer.writerow(entry)
+        # Write all rows
+        writer.writerows(updated_data)
+
 
 # Route to receive data
 @app.route("/receive_data", methods=["POST"])
