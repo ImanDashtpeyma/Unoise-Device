@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="/static/favicon.png" type="image/x-icon">
+    <title>Unoise - Noise Prediction</title>
+</head>
+<body>
+    <header>
+        <img src="/static/logo.png" alt="Unoise Logo" class="logo">
+        <h1>Unoise - Noise Prediction</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li class="active"><a href="/dashboard_predict">Prediction</a></li>
+                <li><a href="/dashboard_classify">Classification</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div class="prediction-section">
+            <img id="chart" alt="Prediction Chart" class="prediction-chart">
+        </div>
+        <div class="metrics-section">
+            <h2 class="section-title">Model Performance Metrics</h2>
+            <table id="metrics-table" class="table table-striped"></table>
+        </div>
+        <div class="summary-section">
+            <h3 class="section-title">Model Summaries</h3>
+            <ul class="summary-list">
+                <li><strong>ARIMA (AutoRegressive Integrated Moving Average):</strong> A traditional statistical model designed to capture trends and seasonality in time series data. Simple but effective for stationary series. Delivered consistent results with moderate error metrics.</li>
+                <li><strong>Random Forest:</strong> A machine learning algorithm based on decision trees, robust against overfitting and effective at capturing non-linear relationships.</li>
+                <li><strong>SVM (Support Vector Machine):</strong> An algorithm that identifies the optimal hyperplane for data separation. Useful for small datasets with high dimensionality.</li>
+                <li><strong>XGBoost (Extreme Gradient Boosting):</strong> An advanced gradient boosting algorithm optimized for speed and performance. Excellent at capturing complex relationships in data, delivering consistent and competitive results.</li>
+            </ul>
+            <h3 class="section-title">Metric Descriptions</h3>
+            <ul class="summary-list">
+                <li><strong>MAE (Mean Absolute Error):</strong> Measures the average absolute error between predictions and actual values. Smaller values indicate higher accuracy (lower is better).</li>
+                <li><strong>MedAE (Median Absolute Error):</strong> Median of absolute errors, less sensitive to outliers than MAE. Smaller values indicate better performance (lower is better).</li>
+                <li><strong>MSE (Mean Squared Error):</strong> Penalizes larger errors more severely, useful for identifying significant deviations. Smaller values indicate better performance (lower is better).</li>
+                <li><strong>RMSE (Root Mean Squared Error):</strong> The square root of MSE, interpretable on the same scale as the data. Smaller values indicate better predictions (lower is better).</li>
+                <li><strong>MAPE (Mean Absolute Percentage Error):</strong> Measures the average percentage error, useful for assessing relative accuracy. Smaller percentages indicate better performance (lower is better).</li>
+            </ul>                     
+        </div>
+    </main>
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div class="footer-column">
+                <p>Internet of Things - HT2024</p>
+                <p>Part Number: 1</p>
+                <p>Project Number: 6</p>
+            </div>
+            <div class="footer-column">
+                <p>Authors:</p>
+                <p>Iman Dashtpeyma (imda3139)</p>
+                <p>Jady Pamella Barbacena da Silva (jaba3743)</p>
+            </div>
+        </div>
+        <p class="footer-copy">&copy; 2025 Unoise. Stockholm University.</p>
+    </footer>  
+    <script>
+        // Fetch precomputed results
+        fetch('/model_predict')
+            .then(response => response.json())
+            .then(data => {
+                // Load chart from URL
+                const chart = document.getElementById('chart');
+                chart.src = data.chart_url;
+    
+                // Load metrics
+                const metricsTable = document.getElementById('metrics-table');
+                const metrics = data.metrics;
+                let tableHTML = '<tr><th>Model</th><th>MAE</th><th>MedAE</th><th>MSE</th><th>RMSE</th><th>MAPE</th></tr>';
+                for (const [model, values] of Object.entries(metrics)) {
+                    tableHTML += `<tr>
+                        <td>${model}</td>
+                        <td>${values.MAE.toFixed(2)}</td>
+                        <td>${values.MedAE.toFixed(2)}</td>
+                        <td>${values.MSE.toFixed(2)}</td>
+                        <td>${values.RMSE.toFixed(2)}</td>
+                        <td>${(values.MAPE * 100).toFixed(2)}%</td>
+                    </tr>`;
+                }
+                metricsTable.innerHTML = tableHTML;
+            })
+            .catch(error => console.error('Error loading predictions:', error));
+    </script>
+</body>
+</html>

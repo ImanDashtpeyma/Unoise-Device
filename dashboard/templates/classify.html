@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="/static/favicon.png" type="image/x-icon">
+    <title>Unoise - Noise Classification</title>
+</head>
+<body>
+    <header>
+        <img src="/static/logo.png" alt="Unoise Logo" class="logo">
+        <h1>Unoise - Noise Classification</h1>
+        <nav>
+            <ul class="navigation">
+                <li><a href="/">Home</a></li>
+                <li><a href="/dashboard_predict">Prediction</a></li>
+                <li class="active"><a href="/dashboard_classify">Classification</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <p>Classify urban noise levels as Safe, Caution, Dangerous or Very Dangerous.</p>
+        <div id="dashboard">
+            <table class="classification-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody id="classification-summary">
+                    <!-- Rows will be dynamically populated -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div class="footer-column">
+                <p>Internet of Things - HT2024</p>
+                <p>Part Number: 1</p>
+                <p>Project Number: 6</p>
+            </div>
+            <div class="footer-column">
+                <p>Authors:</p>
+                <p>Iman Dashtpeyma (imda3139)</p>
+                <p>Jady Pamella Barbacena da Silva (jaba3743)</p>
+            </div>
+        </div>
+        <p class="footer-copy">&copy; 2025 Unoise. Stockholm University.</p>
+    </footer>  
+    <script>
+        fetch('/model_classify')
+            .then(response => response.json())
+            .then(data => {
+                const summary = data.summary;
+                const tableBody = document.getElementById('classification-summary');
+                tableBody.innerHTML = '';
+
+                // Define category display order
+                const orderedCategories = ["Safe", "Caution", "Dangerous", "Very Dangerous"];
+
+                orderedCategories.forEach(category => {
+                    const row = document.createElement('tr');
+                    const categoryCell = document.createElement('td');
+                    const countCell = document.createElement('td');
+
+                    // Add category-specific classes for styling
+                    const className = category.toLowerCase().replace(' ', '-'); // Converts "Very Dangerous" to "very-dangerous"
+                    row.className = className;
+
+                    // Populate cells with data
+                    categoryCell.textContent = category;
+                    countCell.textContent = summary[category] || 0; // Default to 0 if missing
+
+                    row.appendChild(categoryCell);
+                    row.appendChild(countCell);
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching classification summary:", error);
+            });
+    </script>
+</body>
+</html>

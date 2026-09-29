@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="/static/favicon.png" type="image/x-icon">
+    <title>Unoise - Real-Time Noise Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <img src="/static/logo.png" alt="Unoise Logo" class="logo">
+        <h1>Unoise - Real-Time Noise Monitoring</h1>
+        <nav>
+            <ul class="navigation">
+                <li class="active"><a href="/">Home</a></li>
+                <li><a href="/dashboard_predict">Prediction</a></li>
+                <li><a href="/dashboard_classify">Classification</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <p>Monitor real-time noise levels and their classification status.</p>
+
+        <!-- Noise Level Gauge -->
+        <div id="gauge-container">
+            <canvas id="noiseGauge"></canvas>
+            <div id="gauge-label">0 dB</div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="dashboard">
+            <p><strong>Current Measurement:</strong> <span id="current-measurement">Loading...</span> dB</p>
+            <p><strong>Status:</strong> <span id="classification">Loading...</span></p>
+            <button id="refresh-btn" class="refresh-btn">Refresh</button>
+        </div>
+    </main>
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div class="footer-column">
+                <p>Internet of Things - HT2024</p>
+                <p>Part Number: 1</p>
+                <p>Project Number: 6</p>
+            </div>
+            <div class="footer-column">
+                <p>Authors:</p>
+                <p>Iman Dashtpeyma (imda3139)</p>
+                <p>Jady Pamella Barbacena da Silva (jaba3743)</p>
+            </div>
+        </div>
+        <p class="footer-copy">&copy; 2025 Unoise. Stockholm University.</p>
+    </footer>       
+    <script>
+        const ctx = document.getElementById('noiseGauge').getContext('2d');
+        let noiseGauge;
+
+        // Function to initialize or update the gauge
+        function updateGauge(value) {
+            let color;
+            if (value > 120) {
+                color = 'darkred'; // Very Dangerous
+            } else if (value >= 85) {
+                color = 'red'; // Dangerous
+            } else if (value >= 70) {
+                color = 'orange'; // Caution
+            } else {
+                color = 'green'; // Safe
+            }
+
+            if (noiseGauge) {
+                noiseGauge.data.datasets[0].data[0] = value;
+                noiseGauge.data.datasets[0].backgroundColor[0] = color;
+                noiseGauge.update();
+            } else {
+                noiseGauge = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [value, 100 - value],
+                            backgroundColor: [color, '#e0e0e0'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        cutout: '85%',
+                        plugins: {
+                            tooltip: { enabled: false },
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // Update label manually to ensure proper centering
+            document.getElementById('gauge-label').textContent = `${value.toFixed(1)} dB`;
+        }
+
+        // Function to update the real-time dashboard
+        async function updateDashboard() {
+            try {
+                // Fetch real-time noise measurement
+                const measurementResponse = await fetch('/realtime_value');
+                const measurementData = await measurementResponse.json();
+                const currentMeasurement = measurementData.current_measurement;
+
+                // Fetch real-time classification status
+                const statusResponse = await fetch('/realtime_status');
+                const statusData = await statusResponse.json();
+                const classification = statusData.classification;
+
+                // Update UI with fetched data
+                document.getElementById('current-measurement').textContent = currentMeasurement.toFixed(2);
+                document.getElementById('classification').textContent = classification;
+
+                // Update gauge
+                updateGauge(currentMeasurement);
+
+                // Update status color based on classification
+                const classificationElement = document.getElementById('classification');
+                classificationElement.className = '';
+                if (classification === "Very Dangerous") {
+                    classificationElement.classList.add('very-dangerous');
+                } else if (classification === "Dangerous") {
+                    classificationElement.classList.add('dangerous');
+                } else if (classification === "Caution") {
+                    classificationElement.classList.add('caution');
+                } else {
+                    classificationElement.classList.add('safe');
+                }
+            } catch (error) {
+                console.error("Error updating dashboard:", error);
+                document.getElementById('current-measurement').textContent = "Error";
+                document.getElementById('classification').textContent = "Error";
+            }
+        }
+
+        // Set up event listener for the refresh button
+        document.getElementById('refresh-btn').addEventListener('click', updateDashboard);
+
+        // Fetch data when the page loads
+        updateDashboard();
+    </script>
+</body>
+</html>
