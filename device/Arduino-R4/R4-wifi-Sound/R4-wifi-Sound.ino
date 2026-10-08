@@ -2,10 +2,10 @@
 #include <WiFiClient.h>
 
 // WiFi credentials
-const char* ssid = "IMAN-LAPTOP";
+const char* ssid = "YOUR_WIFI_NAME";
 //For Open Network
 //WPA Need 8 char passworg
-const char* password="12345678" ;
+const char* password="YOUR_WIFI_PASSWORD" ;
 
 // Server details
 const char* server = "https://im-unoise-1.onrender.com/";

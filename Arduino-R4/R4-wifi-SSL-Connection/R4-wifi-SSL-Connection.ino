@@ -2,8 +2,8 @@
 #include <WiFiSSLClient.h>
 
 // WiFi credentials
-const char* ssid = "khoone";
-const char* password = "imansamira2019";
+const char* ssid = "YOUR_WIFI_NAME";
+const char* password = "YOUR_WIFI_PASSWORD";
 
 // Server details
 const char* server = "unoise-device.onrender.com";

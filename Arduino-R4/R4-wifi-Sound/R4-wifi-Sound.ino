@@ -2,10 +2,10 @@
 #include <WiFiClient.h>
 
 // WiFi credentials
-const char* ssid = "khoone";
+const char* ssid = "YOUR_WIFI_NAME";
 //For Open Network
 //WPA Need 8 char passworg
-const char* password="imansamira2019" ;
+const char* password="YOUR_WIFI_PASSWORD" ;
 
 // Server details
 const char* server = "192.168.0.37";
