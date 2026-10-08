@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import io
 import matplotlib
 import pickle
-import requests  # To send data to the ML endpoint
 import csv  # For saving data to CSV
 
 # Use the Agg backend for non-interactive rendering
@@ -19,8 +18,16 @@ with open('model.pkl', 'rb') as f:
 # Data storage for sound
 sound_data = []
 
-# Machine learning endpoint
-# ML_ENDPOINT = "https://unoise-dashboard.onrender.com/predict"
+# Labels used by the trained model (adjust based on label encoding)
+LABEL_MAP = {0: "Above Threshold", 1: "Below Threshold"}
+
+
+def predict_label(decibels):
+    """Predict the noise class for one decibel value with the local model."""
+    # scikit-learn expects a 2D array: one row, one feature
+    prediction = model.predict([[float(decibels)]])
+    return LABEL_MAP[int(prediction[0])]
+
 
 def save_to_csv(entry):
     file_name = "static/sound_ml_data.csv"
@@ -60,17 +67,12 @@ def receive_data():
             "decibels": float(data["decibels"])
         }
         
-        # Send data to ML endpoint
+        # Classify the reading with the local ML model
         try:
-            ml_response = requests.post(ML_ENDPOINT, json={"decibels": entry["decibels"]})
-            if ml_response.status_code == 200:
-                prediction = ml_response.json()
-                entry["prediction"] = prediction.get("prediction", "Unknown")
-            else:
-                entry["prediction"] = "ML endpoint error"
+            entry["prediction"] = predict_label(entry["decibels"])
         except Exception as e:
             entry["prediction"] = f"Error: {str(e)}"
-        
+
         # Save to sound_data and CSV
         sound_data.append(entry)
         save_to_csv(entry)
@@ -113,14 +115,9 @@ def chart():
 def predict():
     data = request.get_json()
     if "decibels" in data:
-        # Prepare data for prediction
-        decibel_value = [float(data["decibels"])]
-        prediction = model.predict(decibel_value)
-        # Decode prediction result
-        label_map = {0: "Above Threshold", 1: "Below Threshold"}  # Adjust based on label encoding
         return jsonify({
             "decibels": data["decibels"],
-            "prediction": label_map[prediction[0]]
+            "prediction": predict_label(data["decibels"])
         }), 200
     return jsonify({"error": "Invalid input"}), 400
 
